@@ -14,33 +14,33 @@ log.debug("Starting!")
 class WordLadder
 	def initialize(startWord, endWord, speller, log = nil)
 		@log = log
-		@log.debug "Start word: #{startWord} endWord: #{endWord}" if @log
+		@log.info "Start word: #{startWord} endWord: #{endWord}" if @log
 
 		@startWord = startWord
 		@endWord = endWord
 
 		@speller = speller
-		@current_shortest_chain = 100
+		@current_shortest_chain = 3
 
-		@considered_words = Hash.new(0)
+		@considered_words = {}
 	end
 
 	def generate
-		return self.permuteWord(@startWord, @endWord)
+		return self.permuteWord(@startWord, 1)
 	end
 
 
-	def permuteWord(word, depth = nil)
-		@log.debug "- Considering #{word}"
+	def permuteWord(word, depth)
 		current_list = []
 		temp_word = word.dup
 		(0..temp_word.length-1).each do |index_into_word|
 			(0..25).each do | letter_of_alphabet|
 				new_word = word.dup
 				new_word[index_into_word] = (letter_of_alphabet + 'a'.ord).chr
-				unless @considered_words.has_key?(new_word)
-					@considered_words[new_word]	 = 1
-					list = recursiveGenerate(new_word)
+				existing_depth = @considered_words[new_word]
+				if existing_depth.nil? || depth <= existing_depth
+					@considered_words[new_word]	 = depth
+					list = recursiveGenerate(new_word, depth)
 					if !list.nil? && list.length > 0
 						@log.debug "## #{list}"
 						neww = new_word
@@ -50,22 +50,22 @@ class WordLadder
 				else 
 					@log.debug "~~ Considered already"
 				end
-
-				@considered_words[word] = 1
 			end			
 		end
-		@log.debug "Prior to return, considered owrd was #{word}"
+		@log.debug "Prior to return, considered word was #{word}"
 		return current_list
 	end
 
-	def recursiveGenerate(newWord, depth = nil)
-		@log.debug(newWord)
-		if newWord == @endWord 
-			@log.info "Found it!"
+	def recursiveGenerate(newWord, depth)
+		if depth > @current_shortest_chain
+			return nil
+		elsif newWord == @endWord 
+			@log.info "Found it at depth #{depth}"
+			current_shortest_chain = depth
 			return [@endWord]
 		elsif @speller.correct?(newWord)
-			@log.debug "Considering #{newWord}"
-			return permuteWord(newWord)
+			@log.debug "Considering #{newWord} at #{depth}"
+			return permuteWord(newWord, depth+1)
 		end
 
 		@log.debug "~~ not a valid word."
@@ -77,4 +77,6 @@ end
 
 
 ladder = WordLadder.new("hit", "cog", speller, log)
-puts "Result: #{ladder.generate}"
+result = ladder.generate
+puts "Result: #{result}"
+ap result
