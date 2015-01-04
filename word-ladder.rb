@@ -23,10 +23,12 @@ class WordLadder
 		@current_shortest_chain = 3
 
 		@considered_words = {}
+
+		@tree  = nil
 	end
 
 	def generate
-		return self.permuteWord(@startWord, 1)
+		@tree = self.permuteWord(@startWord, 1) if @tree == nil
 	end
 
 
@@ -44,7 +46,7 @@ class WordLadder
 					if !list.nil? && list.length > 0
 						@log.debug "## #{list}"
 						neww = new_word
-						current_list.push word
+						current_list.push word if current_list.length == 0
 						current_list.push list
 					end
 				else 
@@ -72,11 +74,37 @@ class WordLadder
 		return nil
 	end
 
+	def flat_list_of_lists
+		self.generate if @tree.nil?
+		final_queue = Array.new
+		self.flatten(@tree, Array.new, final_queue)
+		final_queue
+	end
+
+	def flatten(tree, current_queue, final_queue)
+		@log.debug "tree=#{tree} current_queue=#{current_queue}"
+		if tree.length == 1 
+			current_queue.push(tree[0])
+			@log.debug "+++ #{current_queue}"
+			final_queue.push(current_queue.flatten)
+		end
+
+		current_queue.push(tree[0])
+		list_of_queues = Array.new
+		(1..tree.length-1).each do | subtree |
+			new_queue = current_queue.dup
+			q = self.flatten(tree[subtree], new_queue, final_queue)
+			@log.debug("Returned queue is #{q}")
+			list_of_queues.push(q)
+		end
+		return list_of_queues	
+	end
 end
 
 
 
 ladder = WordLadder.new("hit", "cog", speller, log)
-result = ladder.generate
+ap ladder.generate
+result = ladder.flat_list_of_lists
 puts "Result: #{result}"
 ap result
