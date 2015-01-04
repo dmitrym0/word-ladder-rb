@@ -44,7 +44,7 @@ class WordLadder
 					if !list.nil? && list.length > 0
 						@log.debug "## #{list}"
 						neww = new_word
-						list.unshift(word)
+						current_list.push word
 						current_list.push list
 					end
 				else 
