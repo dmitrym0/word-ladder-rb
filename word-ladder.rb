@@ -28,9 +28,18 @@ class WordLadder
 	end
 
 	def generate
-		@tree = self.permuteWord(@startWord, 1) if @tree == nil
+		@tree = permuteWord(@startWord, 1) if @tree == nil
 	end
 
+
+	def flat_list_of_lists
+		self.generate if @tree.nil?
+		final_queue = Array.new
+		flatten(@tree, Array.new, final_queue)
+		final_queue
+	end
+
+	private
 
 	def permuteWord(word, depth)
 		current_list = []
@@ -45,7 +54,6 @@ class WordLadder
 					list = recursiveGenerate(new_word, depth)
 					if !list.nil? && list.length > 0
 						@log.debug "## #{list}"
-						neww = new_word
 						current_list.push word if current_list.length == 0
 						current_list.push list
 					end
@@ -63,7 +71,7 @@ class WordLadder
 			return nil
 		elsif newWord == @endWord 
 			@log.info "Found it at depth #{depth}"
-			current_shortest_chain = depth
+			@current_shortest_chain = depth
 			return [@endWord]
 		elsif @speller.correct?(newWord)
 			@log.debug "Considering #{newWord} at #{depth}"
@@ -74,12 +82,7 @@ class WordLadder
 		return nil
 	end
 
-	def flat_list_of_lists
-		self.generate if @tree.nil?
-		final_queue = Array.new
-		self.flatten(@tree, Array.new, final_queue)
-		final_queue
-	end
+
 
 	def flatten(tree, current_queue, final_queue)
 		@log.debug "tree=#{tree} current_queue=#{current_queue}"
@@ -93,7 +96,7 @@ class WordLadder
 		list_of_queues = Array.new
 		(1..tree.length-1).each do | subtree |
 			new_queue = current_queue.dup
-			q = self.flatten(tree[subtree], new_queue, final_queue)
+			q = flatten(tree[subtree], new_queue, final_queue)
 			@log.debug("Returned queue is #{q}")
 			list_of_queues.push(q)
 		end
