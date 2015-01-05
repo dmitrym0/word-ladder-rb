@@ -54,13 +54,13 @@ class WordLadder
 	# Internal: permuteWord in conjuction with recursiveGenerate, creates a tree of word ladders
 	def permuteWord(word, depth)
 		current_list = []
-		temp_word = word.dup
-		(0..temp_word.length-1).each do |index_into_word|
+		(0..word.length-1).each do |index_into_word|
 			(0..25).each do | letter_of_alphabet|
-				new_word = word.dup
-				new_word[index_into_word] = (letter_of_alphabet + 'a'.ord).chr
+				new_word = word.dup # ruby strings are referenced, so lets create a duplicate that we can modify
+				new_word[index_into_word] = (letter_of_alphabet + 'a'.ord).chr 
 				existing_depth = @considered_words[new_word]
-				if existing_depth.nil? || depth <= existing_depth
+				# check to see whether we've already considered the newly generated word at shallower recursion depth
+				if existing_depth.nil? || depth <= existing_depth 
 					@considered_words[new_word]	 = depth
 					list = recursiveGenerate(new_word, depth)
 					if !list.nil? && list.length > 0
@@ -79,13 +79,14 @@ class WordLadder
 
 	# Internal:
 	def recursiveGenerate(newWord, depth)
+		# abandon the search if the depth of the recursion is greater than a previously successful ladder
 		if depth > @current_shortest_chain
 			return nil
 		elsif newWord == @endWord 
 			@log.info "Found it at depth #{depth}"
-			@current_shortest_chain = depth
+			@current_shortest_chain = depth # now we know the minimum necessary ladder
 			return [@endWord]
-		elsif @speller.correct?(newWord)
+		elsif @speller.correct?(newWord) # we found a valid word. the possibility for a successful lader remains, recurse.
 			@log.debug "Considering #{newWord} at #{depth}"
 			return permuteWord(newWord, depth+1)
 		end
