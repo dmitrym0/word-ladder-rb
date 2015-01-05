@@ -12,7 +12,13 @@ speller = FFI::Aspell::Speller.new('en_US')
 log.debug("Starting!")
 
 class WordLadder
-	def initialize(startWord, endWord, speller, log = nil)
+	# Public: class initializer
+	# 
+	# startWord - the beginning of the lacder
+	# endWord - the end of the ladder
+	# speller - an object conforming to FFI::Aspell::Speller protocol.
+	# log - Ruby Logger
+	def initialize(startWord, endWord, speller, log)
 		@log = log
 		@log.info "Start word: #{startWord} endWord: #{endWord}" if @log
 
@@ -27,11 +33,15 @@ class WordLadder
 		@tree  = nil
 	end
 
+	# Public: generates a tree of word ladders, can be later consumed by flat_list_of_lists
+	# Returns the tree of word ladders
 	def generate
 		@tree = permuteWord(@startWord, 1) if @tree == nil
 	end
 
 
+	# Public: generates a list of word ladders based on the word ladder tree.
+	# Returns an array of arrays (word ladders)
 	def flat_list_of_lists
 		self.generate if @tree.nil?
 		final_queue = Array.new
@@ -41,6 +51,7 @@ class WordLadder
 
 	private
 
+	# Internal: permuteWord in conjuction with recursiveGenerate, creates a tree of word ladders
 	def permuteWord(word, depth)
 		current_list = []
 		temp_word = word.dup
@@ -66,6 +77,7 @@ class WordLadder
 		return current_list
 	end
 
+	# Internal:
 	def recursiveGenerate(newWord, depth)
 		if depth > @current_shortest_chain
 			return nil
@@ -83,7 +95,7 @@ class WordLadder
 	end
 
 
-
+	# flattens the @tree, creating an array of word ladders (1D array)
 	def flatten(tree, current_queue, final_queue)
 		@log.debug "tree=#{tree} current_queue=#{current_queue}"
 		if tree.length == 1 
